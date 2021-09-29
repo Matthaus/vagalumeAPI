@@ -16,13 +16,14 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputLayout
 
-class MainActivity : AppCompatActivity(), MainContract.view {
+class MainActivity : AppCompatActivity() {
 
-    private val presenter = MainPresenter(this)
+    private val mainViewModel by viewModels<MainViewModel>()
 
     private var inputNomeCantor : TextInputLayout? = null
     private var inputNomeMusica : TextInputLayout? = null
@@ -40,14 +41,15 @@ class MainActivity : AppCompatActivity(), MainContract.view {
         title = "Find your song"
 
         bindViews()
+        setObservers()
         btnPesquisarMusica?.setOnClickListener {
-            presenter.buscarLetraMusica(pegarEntradaUsuario().first, pegarEntradaUsuario().second)
+            mainViewModel.buscarLetraMusica(pegarEntradaUsuario().first, pegarEntradaUsuario().second)
             closeKeyboard()
             esconderBarraProgresso()
         }
     }
 
-    override fun bindViews() {
+    fun bindViews() {
         letraMusica = findViewById(R.id.letra_musica)
         menssagemErro = findViewById(R.id.menssagem_erro)
         barraProgresso = findViewById(R.id.barra_progresso)
@@ -56,41 +58,61 @@ class MainActivity : AppCompatActivity(), MainContract.view {
         btnPesquisarMusica = findViewById(R.id.button_pesquisar_musica)
     }
 
-    override fun pegarEntradaUsuario(): Pair<String, String> {
+    private fun setObservers() {
+        mainViewModel.letraMusica.observe(this, {
+            exibirLetraMusica(it)
+        })
+
+        mainViewModel.aconteceuErro.observe(this, {
+            if (it) {
+                exibirMensagemErro()
+            }
+        })
+
+        mainViewModel.exibirBarraProgresso.observe(this, {
+            if (it) {
+                exibirBarraProgresso()
+            } else {
+                esconderBarraProgresso()
+            }
+        })
+    }
+
+    private fun pegarEntradaUsuario(): Pair<String, String> {
         val nomeCantor = inputNomeCantor?.editText?.text.toString()
         val nomeMusica = inputNomeMusica?.editText?.text.toString()
         return nomeCantor to nomeMusica
     }
 
-    override fun exibirLetraMusica(letra : String) {
+    private fun exibirLetraMusica(letra : String) {
         Log.d("apiVagalume2", letra)
         menssagemErro?.text = ""
         letraMusica?.text = letra
         limparCamposInput()
     }
 
-    override fun exibirMensagemErro() {
+    private fun exibirMensagemErro() {
         letraMusica?.text = ""
         menssagemErro?.text = getString(R.string.mensagem_erro_requisicao)
         Toast.makeText(this@MainActivity, "Dados incorretos", Toast.LENGTH_SHORT).show()
     }
 
-    override fun limparCamposInput() {
+    private fun limparCamposInput() {
         inputNomeCantor?.editText?.text?.clear()
         inputNomeMusica?.editText?.text?.clear()
         inputNomeCantor?.editText?.requestFocus()
     }
 
-    override fun exibirBarraProgresso() {
+    private fun exibirBarraProgresso() {
         barraProgresso?.visibility = View.VISIBLE
     }
 
-    override fun esconderBarraProgresso() {
+    private fun esconderBarraProgresso() {
         barraProgresso?.visibility = View.INVISIBLE
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun closeKeyboard() {
+    private fun closeKeyboard() {
         // this will give us the view which is currently focus in this layout
         val view = this.currentFocus
 
