@@ -19,43 +19,39 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.vagalumeapi.databinding.ActivityMainBinding
 import com.google.android.material.textfield.TextInputLayout
 
 class MainActivity : AppCompatActivity() {
 
     private val mainViewModel by viewModels<MainViewModel>()
 
-    private var inputNomeCantor : TextInputLayout? = null
-    private var inputNomeMusica : TextInputLayout? = null
-    var barraProgresso : ProgressBar? = null
-    var letraMusica : TextView? = null
-    var menssagemErro : TextView? = null
-    var btnPesquisarMusica : Button? = null
+    //Nova variável para receber a instancia do binding :)
+    private lateinit var binding : ActivityMainBinding
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        //Podemos remover o setContentView pois a responsabilidade agora é do View Binding
+        //setContentView(R.layout.activity_main)
+
+        //Inflando a view através do View Binding utilizando o inflater da tela, que já existe
+        //sempre = layoutInflater
+        binding = ActivityMainBinding.inflate(layoutInflater)
+
+        //Adicionamos o setContent para adicionar a view criado pelo View Binding
+        //Esssa view é a representação do layout inflado ou seja o activity_main.xml inflado
+        setContentView(binding.root)
 
         //setTitle("Find your song") ou apenas
         title = "Find your song"
 
-        bindViews()
         setObservers()
-        btnPesquisarMusica?.setOnClickListener {
+        binding.buttonPesquisarMusica.setOnClickListener {
             mainViewModel.buscarLetraMusica(pegarEntradaUsuario().first, pegarEntradaUsuario().second)
             closeKeyboard()
             esconderBarraProgresso()
         }
-    }
-
-    fun bindViews() {
-        letraMusica = findViewById(R.id.letra_musica)
-        menssagemErro = findViewById(R.id.menssagem_erro)
-        barraProgresso = findViewById(R.id.barra_progresso)
-        inputNomeCantor = findViewById(R.id.input_nome_cantor)
-        inputNomeMusica = findViewById(R.id.input_nome_musica)
-        btnPesquisarMusica = findViewById(R.id.button_pesquisar_musica)
     }
 
     private fun setObservers() {
@@ -79,36 +75,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pegarEntradaUsuario(): Pair<String, String> {
-        val nomeCantor = inputNomeCantor?.editText?.text.toString()
-        val nomeMusica = inputNomeMusica?.editText?.text.toString()
+        val nomeCantor = binding.inputNomeCantor.editText?.text.toString()
+        val nomeMusica = binding.inputNomeMusica.editText?.text.toString()
         return nomeCantor to nomeMusica
     }
 
     private fun exibirLetraMusica(letra : String) {
         Log.d("apiVagalume2", letra)
-        menssagemErro?.text = ""
-        letraMusica?.text = letra
+        binding.menssagemErro.text = ""
+        binding.letraMusica.text = letra
         limparCamposInput()
     }
 
     private fun exibirMensagemErro() {
-        letraMusica?.text = ""
-        menssagemErro?.text = getString(R.string.mensagem_erro_requisicao)
+        binding.letraMusica.text = ""
+        binding.menssagemErro.text = getString(R.string.mensagem_erro_requisicao)
         Toast.makeText(this@MainActivity, "Dados incorretos", Toast.LENGTH_SHORT).show()
     }
 
     private fun limparCamposInput() {
-        inputNomeCantor?.editText?.text?.clear()
-        inputNomeMusica?.editText?.text?.clear()
-        inputNomeCantor?.editText?.requestFocus()
+        binding.inputNomeCantor.editText?.text?.clear()
+        binding.inputNomeMusica.editText?.text?.clear()
+        binding.inputNomeCantor.editText?.requestFocus()
     }
 
     private fun exibirBarraProgresso() {
-        barraProgresso?.visibility = View.VISIBLE
+        binding.barraProgresso.visibility = View.VISIBLE
     }
 
     private fun esconderBarraProgresso() {
-        barraProgresso?.visibility = View.INVISIBLE
+        binding.barraProgresso.visibility = View.INVISIBLE
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
